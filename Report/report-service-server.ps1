@@ -1,4 +1,4 @@
-﻿<#
+<#
 
     report-service-server.ps1
     
@@ -7,6 +7,7 @@
     
     Version history: 
         08.08.2020 First release
+        26.05.2022 Fix null : StartName (merci Noel)
 
     #Reference : https://gallery.technet.microsoft.com/scriptcenter/PowerShell-script-to-find-6fc15ecb
                  * Use Job and missing nice features
@@ -52,7 +53,6 @@ function get-server-info()
         try {
             # retrieve service list form a remove machine
             $serviceList = @( gwmi -Class Win32_Service -ComputerName $hostname -Property Name,StartName,SystemName -ErrorAction Stop )
-            ##$serviceList
 
             ##############################
             # reads service list
@@ -60,6 +60,8 @@ function get-server-info()
             if ( $serviceList.GetType() -eq [Object[]] ){
                 try
                 {
+
+                    $serviceList = $serviceList | ? { $_.StartName }
                     $serviceList = $serviceList | ? { $_.StartName.toUpper() }
 
                     if ($serviceList.Count -ge 1)
@@ -73,6 +75,7 @@ function get-server-info()
                         $ItemInfo    = $hostname, "", "no services" 
                         $script:ServerList.Add( $arrID, @( $ItemInfo ) ) 
                     }
+
 
                     #Apply Filter
                     if ($IgnoreAccount_NT_Service   -eq 1) { $serviceList = $serviceList | Where-Object {$_.StartName -notlike "NT Service\*" }   | ? { $_.StartName } }
@@ -168,7 +171,8 @@ foreach( $value in $ServerList.Values )
 #################
 # create report
 $datenow = Get-Date -format "yyyy-MMM-dd HH:mm"
-$report = "<!DOCTYPE html>
+$report = "
+<!DOCTYPE html>
 <html>
 <head>
 <style>
@@ -192,7 +196,7 @@ Discovered $($ServiceTable.count) services.
 
 <H2>Discovered servers</H2>
 $( $ServerTable | Sort Status, Server   | ConvertTo-Html Server, Services, Status -Fragment )
-$($serverList.count) servers processed. 
+$($ServerTable.count) servers processed. 
 </br>
 
 <H2>Warning messages</H2> 
