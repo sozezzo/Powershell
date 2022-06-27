@@ -1,20 +1,38 @@
-
-function Write-Log {
+function Write-Log 
+{
     Param(
-        $Message,
+        $Message = "",
         $Path = "",
-        $MaximumSizeLogKB = 10000
-    )
-    
+        $MaximumSizeLogKB = 10000,
+        [switch] $Verbose 
+         )
+
     if ($Path -eq "")
     {
         $Path = $PSCommandPath+".log"
     }
 
-    $SizeLogKB = (Get-Item $Path).length/1KB
+    if ((Test-Path $path))
+    {
+        $SizeLogKB = (Get-Item $Path).length/1KB
+        if ($SizeLogKB -gt $MaximumSizeLogKB)
+        {
+            $PathBak = $Path+'.bak' 
+            $FileName = "D:\PowerShell\File-Delete.txt"
+            if (Test-Path $PathBak) {
+              Remove-Item -Force $PathBak
+            }
+            Rename-Item -Path $Path -NewName $PathBak 
+        }
+    }
 
-    function TS {Get-Date -Format 'yyyy-MM-dd HH:mm:ss'}
-    "$(TS)|$Message"
-    "$(TS)|$Message" | Tee-Object -FilePath $Path -Append | Write-Verbose
+    $ts = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+
+    if ($Verbose)
+    {
+        "$ts|$Message"
+    }
+
+    "$ts|$Message" | Tee-Object -FilePath $Path -Append | Write-Verbose
 
 }
