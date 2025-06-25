@@ -76,6 +76,42 @@ function Test-WebPageContent {
     }
 }
 
+
+
+<#
+.SYNOPSIS
+    Waits for a specific string to appear in the content of a web page.
+
+.DESCRIPTION
+    This function repeatedly checks the content of a specified web page at a given port,
+    searching for a specific string. It continues to check at defined intervals until the string
+    is found or a timeout is reached.
+
+.PARAMETER Url
+    The base URL (e.g., http://localhost or http://10.0.0.1) to check.
+
+.PARAMETER Port
+    The port number the web page is served on (e.g., 80 or 8080).
+
+.PARAMETER StringToVerify
+    The string that must be present in the web page's content to consider the check successful.
+
+.PARAMETER TimeoutInSeconds
+    Total duration (in seconds) to wait for the string to appear. Default is 300 seconds (5 minutes).
+
+.PARAMETER CheckInterval
+    Interval (in seconds) between each check attempt. Default is 30 seconds.
+
+.OUTPUTS
+    Returns $true if the string is found within the timeout.
+    Returns $false if the timeout is reached without finding the string.
+
+.EXAMPLE
+    Wait-ForWebPageContent -Url "http://localhost" -Port 8080 -StringToVerify "Server Ready" -TimeoutInSeconds 120 -CheckInterval 10
+
+    Checks every 10 seconds for up to 2 minutes whether "Server Ready" appears on http://localhost:8080.
+#>
+
 function Wait-ForWebPageContent {
     param(
         [Parameter(Mandatory)]
@@ -91,20 +127,24 @@ function Wait-ForWebPageContent {
         [int]$CheckInterval = 30         # Default interval: 30 seconds
     )
 
+    # Calculate the time at which to stop checking
     $endTime = (Get-Date).AddSeconds($TimeoutInSeconds)
 
     while ((Get-Date) -lt $endTime) {
         $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 
+        # Call the test function to check if the expected string is present
         if (Test-WebPageContent -Url $Url -Port $Port -StringToVerify $StringToVerify) {
             Write-Host "$timestamp - ✅ Success: '${StringToVerify}' found at ${Url}:${Port}."
             return $true
         }
 
+        # If not found, wait and retry
         Write-Host "$timestamp - ❌ Fail: '${StringToVerify}' not found at ${Url}:${Port}. Retrying in $CheckInterval seconds..."
         Start-Sleep -Seconds $CheckInterval
     }
 
+    # Timeout reached without success
     Write-Host "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") - ⏱ Timeout reached. '${StringToVerify}' not found at ${Url}:${Port}."
     return $false
 }
