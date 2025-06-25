@@ -1,38 +1,62 @@
-function Send-HtmlEmail {
-    <#
-    .SYNOPSIS
-    Sends an HTML-formatted email with footer info (script name, server name, timestamp).
+<#
+.SCRIPT NAME
+    Send-HtmlEmail.ps1
 
-    .PARAMETER To
-    Recipient email address(es).
+.AUTHOR
+    Milton Sozezzo
 
-    .PARAMETER From
-    Sender email address.
+.LICENSE
+    MIT License (or specify another license)
 
-    .PARAMETER Subject
-    Subject of the email.
+.VERSION
+    1.0
 
-    .PARAMETER Body
-    HTML-formatted body content (excluding footer).
+.DESCRIPTION
+    Sends an HTML-formatted email using PowerShell's Send-MailMessage.
+    Appends an automatic footer to the message with:
+        - Script file name
+        - Server/host name
+        - Current timestamp
 
-    .PARAMETER SmtpServer
-    SMTP server to use.
+.PARAMETER To
+    [string[]] One or more recipient email addresses.
 
-    .PARAMETER SmtpPort
-    (Optional) SMTP server port. Default is 25.
+.PARAMETER From
+    [string] The sender's email address.
 
-    .PARAMETER UseSsl
-    (Optional) Whether to use SSL. Default is $false.
+.PARAMETER Subject
+    [string] Subject line of the email.
 
-    .PARAMETER Credential
-    (Optional) PSCredential object for authenticated SMTP.
+.PARAMETER Body
+    [string] HTML content for the body of the email (excluding the footer).
 
-    .EXAMPLE
-    Send-HtmlEmail -To "user@example.com" -From "me@example.com" -Subject "Report" `
-        -Body "<h2>Status Report</h2><p>All systems operational.</p>" `
+.PARAMETER SmtpServer
+    [string] The SMTP server address used to send the message.
+
+.PARAMETER SmtpPort
+    [int] (Optional) The SMTP server port number. Default is 25.
+
+.PARAMETER UseSsl
+    [switch] (Optional) If specified, the connection will use SSL.
+
+.PARAMETER Credential
+    [PSCredential] (Optional) A credential object for authenticated SMTP servers.
+    If not provided, anonymous SMTP will be attempted.
+
+.EXAMPLE
+    Send-HtmlEmail -To "admin@example.com" -From "noreply@example.com" -Subject "Alert" `
+        -Body "<h1>System Status</h1><p>Everything is operational.</p>" `
         -SmtpServer "smtp.example.com"
-    #>
 
+.NOTES
+    Designed for automation scripts, monitoring tools, and scheduled jobs.
+    Requires PowerShell 5.1+ or equivalent with access to Send-MailMessage.
+
+.LAST UPDATED
+    2025-06-25
+#>
+
+function Send-HtmlEmail {
     param (
         [Parameter(Mandatory)] [string[]] $To,
         [Parameter(Mandatory)] [string] $From,
@@ -46,7 +70,6 @@ function Send-HtmlEmail {
 
     try {
         # Footer info
-        # Get script file name if running from a script, otherwise use function name
         $scriptName = if ($PSCommandPath) {
             Split-Path $PSCommandPath -Leaf
         } else {
