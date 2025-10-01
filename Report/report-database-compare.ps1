@@ -684,3 +684,6 @@ $fullHtml = ConvertTo-Html -Title 'Database Comparison Report' -Head $headConten
 Set-Content -Path $OutputPath -Value $fullHtml -Encoding UTF8
 
 Write-Host "Report generated at $OutputPath"
+
+Invoke-Expression $OutputPath 
+
